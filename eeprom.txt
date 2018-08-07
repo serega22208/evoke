@@ -1,8 +1,12 @@
 void read_large_eeprom(int address, unsigned long first, unsigned long bytes) {
   byte value;
   unsigned long add;
-
+  byte Error_eeprom=0;
   for(add = first; add < bytes; add++) {
+    if (Error_eeprom!=0){
+    Serial.write('ERRoR')
+    break;
+    }
     Wire.beginTransmission(address);////Начинает передачу на ведомое I2C устройство с заданным адресом. После него последовательность байтов для передачи ставится в очередь с помощью функции write(), и их передача с помощью вызова endTransmission().
     Wire.write(byte(add >> 8)); //MSB
     Wire.write(byte(add & 0xFF));  //LSB
@@ -22,11 +26,16 @@ void read_large_eeprom(int address, unsigned long first, unsigned long bytes) {
     eeprom_packet[4]=calcrc((char*)eeprom_packet, 4)
     Serial.write(eeprom_packet, 5);
 
+
+//sfwfs ten times try to transfer and wait datacheck good answer('\nOK\n')
     for(i=1;i<10;i++){
     Serial.write(eeprom_packet, 5);
     delay(5);
     if (Serial.read() == '\nOK\n') {
     break;
+    }
+    if (i>=9){
+    byte Error_eeprom=1;
     }
 }
 }
