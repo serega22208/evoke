@@ -1,0 +1,50 @@
+void read_large_eeprom(int address, unsigned long first, unsigned long bytes) {
+  byte value;
+  unsigned long add;
+
+  for(add = first; add < bytes; add++) {
+    Wire.beginTransmission(address);////Начинает передачу на ведомое I2C устройство с заданным адресом. После него последовательность байтов для передачи ставится в очередь с помощью функции write(), и их передача с помощью вызова endTransmission().
+    Wire.write(byte(add >> 8)); //MSB
+    Wire.write(byte(add & 0xFF));  //LSB
+    Wire.endTransmission();//
+
+    //Wire.beginTransmission(address);
+    Wire.requestFrom(address, 1);//Используется мастером для запроса байтов от ведомого устройства. Эти байты могут быть получены с помощью методов available() и read() Wire.requestFrom(address, quantity) address: 7-битный адрес устройства, у которого запрашиваются байты; quantity: количество запрашиваемых байтов;
+
+    if(Wire.available()) value = Wire.read();//
+    int eeprom_packet[5];
+    //The protcol is as follows:
+    //Header(0x06,0x85),SizeofPayload,Payload,CRC16(XModem)
+    eeprom_packet[0]=6;
+    eeprom_packet[1]=133;
+    eeprom_packet[2]=8;
+    eeprom_packet[3]=value;
+    eeprom_packet[4]=calcrc((char*)eeprom_packet, 4)
+    Serial.write(eeprom_packet, 5);
+
+    for(i=1;i<10;i++){
+    Serial.write(eeprom_packet, 5);
+    delay(5);
+    if (Serial.read() == '\nOK\n') {
+    break;
+    }
+}
+}
+}
+
+
+
+
+
+int eeprom_read(int fd, unsigned long num_bytes, char format)
+{
+	errno = 0;
+	unsigned long i = 0;
+	unsigned char byte;
+	FILE *fp = fopen(file_name, "w");
+
+	while((i < num_bytes) && !ctrlc) {
+		if (read(fd, &byte, sizeof(byte)) < 0) {
+			printf("\nError while reading, errno: %s\n", strerror(errno));
+			break;
+		}
