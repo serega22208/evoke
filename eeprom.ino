@@ -37,7 +37,7 @@ void read_large_eeprom(int address, unsigned long first, unsigned long bytes) {
         eeprom_packet[2]=8;
         eeprom_packet[3]=value;
         eeprom_packet[4]=calcrc((char*)eeprom_packet, 4);
-        Serial.write(eeprom_packet, 5);
+        Serial.print(eeprom_packet, 5);
     }
 
 
