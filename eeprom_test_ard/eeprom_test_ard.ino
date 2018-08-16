@@ -1,10 +1,6 @@
 #include <Wire.h>
-#include <Crc16.h>
-
 #define ADDRESS 0x50
 
-//Crc 16 library (XModem)
-Crc16 crc;
 
 void setup() {
   // put your setup code here, to run once:
@@ -12,7 +8,6 @@ void setup() {
   Serial.println("CRC-16 bit test program");
   Serial.println("=======================");
   Wire.begin();
-
 }
 
 void loop() {
@@ -51,59 +46,27 @@ void read_large_eeprom(int address, unsigned long first, unsigned long bytes) {
     // Wire.requestFrom(address, quantity) address: 7-битный адрес устройства,
     // у которого запрашиваются байты; quantity:
     // количество запрашиваемых байтов;
-    delay(1);
     //read 1 byte from i2c eeprom and encode it to send over rs-232
     if (Wire.available()) {
       value = Wire.read();
       int i=0;
       //  The packet format is as follows:
-      //  @@Header(0x06,0x85)|SizeofPayload|Payload|CRC16(XModem)@@
-
-      //byte eeprom_packet[5];
-      //eeprom_packet[0] = 6;
-      //eeprom_packet[1] = 133;
-      //eeprom_packet[2] = 8;
-      //eeprom_packet[3] = 130; //value from eeprom;
-      //eeprom_packet[4] = calcrc((unsigned short*)eeprom_packet,4);
-      String eeprom_packet1 = String(6, DEC);
-      String eeprom_packet2 = String(133, DEC);
-      String eeprom_packet3 = String(8, DEC);
-      String eeprom_packet4 = String(130, DEC);
-      String full_packet = String(eeprom_packet1 + eeprom_packet2 + eeprom_packet3 + eeprom_packet4);
+      //  @@Header(0x06,0x85)6 133|SizeofPayload 8|Payload ???|CRC16(XModem)@@
+      String eeprom_packet1 = String(61338, DEC);
+      String eeprom_packet2 = String(value, DEC);
+      String full_packet = String(eeprom_packet1 + eeprom_packet2);
       char full_packet_char[9] = "0000000";
-      full_packet.toCharArray(full_packet_char, 9) ;
-      Serial.print(eeprom_packet1);
-      Serial.print(eeprom_packet2);
-      Serial.print(eeprom_packet3);
-      Serial.print(eeprom_packet4);
-      Serial.print("full_packet_char  =");
-      Serial.print(full_packet_char);
+      full_packet.toCharArray(full_packet_char, 9);
+      Serial.print("ADDRESS from eeprom =");
+      Serial.println(add);
+      Serial.print("value from eeprom =");
+      Serial.println(eeprom_packet2);
+      Serial.print("full_packet_char =");
+      Serial.println(full_packet_char);
       //Serial.print(eeprom_packet[4]);
-
-      Serial.println("Calculating crc incrementally");
-
-
-      Serial.println("Reference XModem crc");
       unsigned short  value_of_crc = calcrc((char*)full_packet_char, 8);
-      Serial.print("crc = 0x");
+      Serial.print("crc16_XMODEM = 0x");
       Serial.println(value_of_crc, HEX);
-    //  crc.clearCrc();
-    /*  for(unsigned short i=0;i<4;i++)
-      {
-          Serial.print("byte ");
-          Serial.print(i);
-          Serial.print(" = ");
-          Serial.println(eeprom_packet[i]);
-          crc.updateCrc(eeprom_packet[i]);
-      }
-unsigned short value_CRCINC = crc.getCrc();
-*/
-    //  for (i = 0; i <= 4; i++) {
-    //      Serial.print(eeprom_packet[i]);
-    //
-    //  }
-
-
 
     for (i = 1; i <= 5; i++) {
     char response[] = "O""K";
